@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Model Files (terlalu besar)
+*.pkl
+knn_model.pkl
+scaler.pkl
+
+# Dataset (jika terlalu besar, bisa di-exclude)
+# diabetes.csv
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documents (tidak perlu di-push)
+*.docx
+*.pdf
+*.doc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment variables
+.env
+.flaskenv

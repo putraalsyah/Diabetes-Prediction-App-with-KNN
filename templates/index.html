@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Diabetes - KNN | Putra Aliansyah</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .author-info {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-card {
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-positive {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .result-negative {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .result-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .probability-bars {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .prob-item {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .prob-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .prob-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .prob-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendations h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .recommendations li:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .probability-bars {
+                flex-direction: column;
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Sistem Prediksi Diabetes</h1>
+            <p>Menggunakan Algoritma K-Nearest Neighbors (KNN)</p>
+            <div class="author-info">
+                <strong>Putra Aliansyah</strong> | NIM: 301230041 | IF 5A<br>
+                Dosen: Mohammad Bayu Anggara, S.Kom., M.Kom.
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Form Input -->
+            <div class="card">
+                <h2>📋 Input Data Pasien</h2>
+                
+                <div class="alert alert-error" id="errorAlert"></div>
+
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="pregnancies">Jumlah Kehamilan (Pregnancies)</label>
+                        <input type="number" id="pregnancies" name="pregnancies" min="0" max="20" step="1" value="2" required>
+                        <div class="input-hint">Jumlah kali hamil (0-20)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="glucose">Kadar Glukosa (mg/dL) *</label>
+                        <input type="number" id="glucose" name="glucose" min="1" max="250" step="1" value="120" required>
+                        <div class="input-hint">Normal: 70-140 mg/dL</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bloodPressure">Tekanan Darah Diastolik (mm Hg)</label>
+                        <input type="number" id="bloodPressure" name="bloodPressure" min="0" max="150" step="1" value="70" required>
+                        <div class="input-hint">Normal: 60-80 mm Hg</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skinThickness">Ketebalan Kulit (mm)</label>
+                        <input type="number" id="skinThickness" name="skinThickness" min="0" max="100" step="1" value="20" required>
+                        <div class="input-hint">Lipatan kulit trisep</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="insulin">Kadar Insulin (mu U/ml)</label>
+                        <input type="number" id="insulin" name="insulin" min="0" max="900" step="1" value="80" required>
+                        <div class="input-hint">Serum insulin 2 jam</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bmi">Body Mass Index (BMI) *</label>
+                        <input type="number" id="bmi" name="bmi" min="1" max="70" step="0.1" value="25.0" required>
+                        <div class="input-hint">Normal: 18.5-24.9 kg/m²</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="diabetesPedigreeFunction">Diabetes Pedigree Function</label>
+                        <input type="number" id="diabetesPedigreeFunction" name="diabetesPedigreeFunction" min="0" max="3" step="0.01" value="0.35" required>
+                        <div class="input-hint">Fungsi silsilah diabetes (0-3)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Usia (Tahun) *</label>
+                        <input type="number" id="age" name="age" min="1" max="120" step="1" value="30" required>
+                        <div class="input-hint">Usia pasien dalam tahun</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">🔍 Prediksi Sekarang</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+                </form>
+
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>Menganalisis data pasien...</p>
+                </div>
+            </div>
+
+            <!-- Result Panel -->
+            <div class="card">
+                <h2>📊 Hasil Prediksi</h2>
+                
+                <div id="resultPlaceholder" style="text-align: center; padding: 50px 20px; color: #999;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🩺</div>
+                    <p>Hasil prediksi akan muncul di sini setelah Anda mengisi form dan menekan tombol "Prediksi Sekarang".</p>
+                </div>
+
+                <div class="result-container" id="resultContainer">
+                    <div class="result-card" id="resultCard">
+                        <div class="result-icon" id="resultIcon"></div>
+                        <div class="result-text" id="resultText"></div>
+                        <div class="risk-badge" id="riskBadge"></div>
+                    </div>
+
+                    <div class="probability-bars">
+                        <div class="prob-item">
+                            <div class="prob-label">Tidak Diabetes</div>
+                            <div class="prob-value" id="probNo">0%</div>
+                            <div class="prob-bar">
+                                <div class="prob-bar-fill" id="barNo" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="prob-item">
+                            <div class="prob-label">Diabetes</div>
+                            <div class="prob-value" id="probYes">0%</div>
+                            <div class="prob-bar">
+                                <div class="prob-bar-fill" id="barYes" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <h3>💡 Rekomendasi</h3>
+                        <ul id="recommendationList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Info -->
+        <div class="info-section">
+            <h2 style="color: #667eea; margin-bottom: 15px;">ℹ️ Informasi Model</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Algoritma</div>
+                    <div class="info-value">KNN</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Nilai K</div>
+                    <div class="info-value">8</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Akurasi</div>
+                    <div class="info-value">76.62%</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Precision</div>
+                    <div class="info-value">71.43%</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Recall</div>
+                    <div class="info-value">55.56%</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">F1-Score</div>
+                    <div class="info-value">62.50%</div>
+                </div>
+            </div>
+            <p style="margin-top: 15px; color: #666; text-align: center;">
+                Dataset: Pima Indians Diabetes Database (768 samples, 8 features)
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>📚 Tugas Akhir Praktikum Pembelajaran Mesin</strong></p>
+            <p>Universitas Bale Bandung | Semester 5 | 2024</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                ⚠️ Disclaimer: Sistem ini hanya untuk screening awal. Konsultasi dengan dokter untuk diagnosis yang akurat.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Event listener untuk form submission
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Hide error alert
+            document.getElementById('errorAlert').style.display = 'none';
+            
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultPlaceholder').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'none';
+            
+            // Collect form data
+            const formData = {
+                pregnancies: parseFloat(document.getElementById('pregnancies').value),
+                glucose: parseFloat(document.getElementById('glucose').value),
+                bloodPressure: parseFloat(document.getElementById('bloodPressure').value),
+                skinThickness: parseFloat(document.getElementById('skinThickness').value),
+                insulin: parseFloat(document.getElementById('insulin').value),
+                bmi: parseFloat(document.getElementById('bmi').value),
+                diabetesPedigreeFunction: parseFloat(document.getElementById('diabetesPedigreeFunction').value),
+                age: parseFloat(document.getElementById('age').value)
+            };
+            
+            try {
+                // Send POST request to Flask backend
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (response.ok) {
+                    // Display result
+                    displayResult(result);
+                } else {
+                    // Show error
+                    showError(result.error || 'Terjadi kesalahan saat prediksi');
+                }
+            } catch (error) {
+                // Hide loading
+                document.getElementById('loadingIndicator').style.display = 'none';
+                showError('Tidak dapat terhubung ke server. Pastikan server Flask berjalan.');
+            }
+        });
+        
+        function displayResult(result) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultCard = document.getElementById('resultCard');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultText = document.getElementById('resultText');
+            const riskBadge = document.getElementById('riskBadge');
+            
+            // Set icon and color based on prediction
+            if (result.prediction === 1) {
+                resultCard.className = 'result-card result-positive';
+                resultIcon.textContent = '⚠️';
+                resultText.textContent = result.prediction_text;
+            } else {
+                resultCard.className = 'result-card result-negative';
+                resultIcon.textContent = '✅';
+                resultText.textContent = result.prediction_text;
+            }
+            
+            // Set risk badge
+            riskBadge.textContent = `Risiko: ${result.risk_level}`;
+            if (result.risk_level === 'Tinggi') {
+                riskBadge.className = 'risk-badge risk-high';
+            } else if (result.risk_level === 'Sedang') {
+                riskBadge.className = 'risk-badge risk-medium';
+            } else {
+                riskBadge.className = 'risk-badge risk-low';
+            }
+            
+            // Set probabilities
+            document.getElementById('probNo').textContent = result.probability_no_diabetes.toFixed(1) + '%';
+            document.getElementById('probYes').textContent = result.probability_diabetes.toFixed(1) + '%';
+            document.getElementById('barNo').style.width = result.probability_no_diabetes + '%';
+            document.getElementById('barYes').style.width = result.probability_diabetes + '%';
+            
+            // Set recommendations
+            const recommendationList = document.getElementById('recommendationList');
+            recommendationList.innerHTML = '';
+            result.recommendation.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationList.appendChild(li);
+            });
+            
+            // Show result
+            resultContainer.style.display = 'block';
+            
+            // Smooth scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.textContent = '❌ ' + message;
+            errorAlert.style.display = 'block';
+            document.getElementById('resultPlaceholder').style.display = 'block';
+        }
+        
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('resultPlaceholder').style.display = 'block';
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
